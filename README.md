@@ -9,6 +9,10 @@ Adicionar novo morador: Os usuários podem inserir informações de novos morado
 Listar moradores: Os moradores cadastrados são exibidos em uma tabela, exibindo seus nomes, números de apartamento, e-mails e valores a pagar.
 Enviar e-mails: Ao clicar no botão "Enviar E-mail", a aplicação envia e-mails separadamente para cada morador cadastrado, informando sobre o valor a pagar e outras informações relevantes.
 
+## Tecnologias 
+
+Reactjs, Firebase e emailJs.
+
 # Uso
 Ao acessar a aplicação, você verá um formulário onde pode inserir as informações de um novo morador. Preencha os campos obrigatórios e clique no botão "Criar" para adicionar o morador.
 
