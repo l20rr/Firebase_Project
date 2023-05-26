@@ -1,7 +1,7 @@
 # Condomínio App
 
 
-#Descrição
+## Descrição
 O Condomínio App é uma aplicação desenvolvida em ReactJS que permite gerenciar informações de moradores de um condomínio, incluindo seus nomes, e-mails, números de apartamento e valores a pagar. Além disso, a aplicação oferece a funcionalidade de enviar e-mails separadamente para cada morador.
 
 # Recursos
