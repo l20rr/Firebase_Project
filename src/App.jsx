@@ -47,7 +47,6 @@ function App() {
 
         // Envia o e-mail para cada endereço de e-mail separadamente
         const response = await emailjs.send("service_qseq5h4", "template_nn6jd2z", templateParams);
-        const response = await emailjs.send("service_id","template_id", templateParams);
         console.log(`E-mail enviado para ${item.email}:`, response);
       }
     } catch (error) {
