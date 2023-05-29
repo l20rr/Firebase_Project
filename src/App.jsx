@@ -31,7 +31,7 @@ function App() {
 
   const sendEmailsSeparately = async () => {
     try {
-      emailjs.init('ldVC4gfqmNeOy61oI');
+      emailjs.init('User_id');
 
       // Itera sobre cada item na lista de dados (e-mails)
       for (let i = 0; i < Data.length; i++) {
@@ -47,6 +47,7 @@ function App() {
 
         // Envia o e-mail para cada endereço de e-mail separadamente
         const response = await emailjs.send("service_qseq5h4", "template_nn6jd2z", templateParams);
+        const response = await emailjs.send("service_id","template_id", templateParams);
         console.log(`E-mail enviado para ${item.email}:`, response);
       }
     } catch (error) {
