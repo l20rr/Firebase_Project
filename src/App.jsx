@@ -9,9 +9,9 @@ import { Modal, Button } from 'react-bootstrap';
 
 
 const firebaseApp = initializeApp( {
-  apiKey: "AIzaSyC-WLcn3-G0R62xVwsq1MwrJPx2wrrUuj8",
-  authDomain: "condominio-b9c00.firebaseapp.com",
-  projectId: "condominio-b9c00",
+  apiKey: "Key",
+  authDomain: "Domin.firebaseapp.com",
+  projectId: "condominio-ID",
 });
 
 function App() {
