@@ -1,10 +1,11 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, getDocs, collection,addDoc , doc, deleteDoc , updateDoc} from "firebase/firestore";
+import { onSnapshot, getFirestore, getDocs, collection,addDoc , doc, deleteDoc , updateDoc} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useCookies } from 'react-cookie';
 import emailjs from '@emailjs/browser'
 import './style.css';
 import Login from "./Login";
+import { Modal, Button } from 'react-bootstrap';
 
 
 const firebaseApp = initializeApp( {
@@ -26,12 +27,15 @@ function App() {
   const [editedNum_ap, setEditedNum_ap] = useState('');
   const [editingValue, setEditingValue] = useState(null);
   const [editedValue, setEditedValue] = useState('');
+  const [showModal, setShowModal] = useState(false);
+const [modalContent, setModalContent] = useState('');
   
-
+const db = getFirestore(firebaseApp);
+const CollectionRef = collection(db, "condominio");
 
   const sendEmailsSeparately = async () => {
     try {
-      emailjs.init('User_id');
+      emailjs.init('ldVC4gfqmNeOy61oI');
 
       // Itera sobre cada item na lista de dados (e-mails)
       for (let i = 0; i < Data.length; i++) {
@@ -42,20 +46,24 @@ function App() {
           from_name: item.Num_ap,
           to_name: item.email,
           subject: `Cobrança ${item.Num_ap}`,
-          message: `Olá, ${item.Num_ap}, a adm envia essa menssagem para dizer que com a reforma do predio voce deve ${item.value}`
+          message: `Olá, ${item.Num_ap}, a adm envia essa menssagem para dizer que com a reforma do predio voce deve ${item.value} €`
         };
 
-        // Envia o e-mail para cada endereço de e-mail separadamente
-        const response = await emailjs.send("service_qseq5h4", "template_nn6jd2z", templateParams);
-        console.log(`E-mail enviado para ${item.email}:`, response);
+        try {
+          const response = await emailjs.send("service_qseq5h4", "template_nn6jd2z", templateParams);
+          setModalContent(`E-mail enviado para ${item.Num_ap}`);
+          setShowModal(true);
+        } catch (error) {
+          setModalContent(`Erro ao enviar o e-mail para ${item.email}: ${error}`);
+          setShowModal(true);
+        }
       }
     } catch (error) {
-      console.error('Erro ao enviar e-mails:', error);
+      alert('Erro ao enviar e-mails:', error);
     }
   };
 
-  const db = getFirestore(firebaseApp);
-  const CollectionRef = collection(db, "condominio");
+
 
   useEffect(() => {
     const getData = async () => {
@@ -68,38 +76,58 @@ function App() {
   }, []);
 
   async function cirarDado() {
-    const info = await addDoc(CollectionRef, {
-      name,
-      email,
-      Num_ap,
-      value: 280,
-    });
-    window.location.reload();
+    if (name && email && Num_ap ) {
+      const info = await addDoc(CollectionRef, {
+        name,
+        email,
+        Num_ap,
+        value: 280,
+      });
+      window.location.reload();
+    }
   }
-
+  
   async function deleteData(id) {
     const info = await deleteDoc(doc(db, "condominio", id));
     window.location.reload();
   }
 
-  const markAsPaid = async (id) => {
-    const updatedPaidValues = {
-      ...paidValues,
-      [id]: 0,
-    };
-    
+  const markAsPaid = async (id, value) => {
+    let updatedPaidValues = { ...paidValues };
+  
+    // Verifica o valor atual do item
+    if (updatedPaidValues[id] === 0) {
+      updatedPaidValues[id] = value; // Atualiza para "Pago" com o valor original do item
+    } else {
+      updatedPaidValues[id] = 0; // Atualiza para "Checked" com valor 0
+    }
+  
     setPaidValues(updatedPaidValues);
-    
+    localStorage.setItem('paidValues', JSON.stringify(updatedPaidValues));
+  
     try {
       await updateDoc(doc(db, "condominio", id), {
-        value: 0,
+        value: updatedPaidValues[id],
       });
       console.log("Valor pago atualizado no Firebase com sucesso!");
     } catch (error) {
       console.error("Erro ao atualizar o valor pago no Firebase:", error);
     }
+    
   };
-
+  
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'condominio'), (querySnapshot) => {
+      let updatedPaidValues = {};
+      querySnapshot.forEach((doc) => {
+        const item = doc.data();
+        updatedPaidValues[doc.id] = item.value;
+      });
+      setPaidValues(updatedPaidValues);
+    });
+  
+    return () => unsubscribe();
+  }, []);
   const edit = async (id) => {
     try {
       await updateDoc(doc(db, "condominio", id), {
@@ -138,6 +166,31 @@ function App() {
     return atob(encryptedPassword); 
   };
 
+//add 280€
+useEffect(() => {
+  const currentMonth = new Date().getMonth() + 1; 
+
+  if ([1, 4, 6,7, 10].includes(currentMonth)) {
+   
+    const isValueAdded = Data.some(item => item.value === item.initialValue + 280);
+
+    if (!isValueAdded) {
+      setData(prevData => prevData.map(item => ({
+        ...item,
+        value: item.value + 280
+      })));
+    }
+  } 
+}, []);
+  
+  useEffect(() => {
+    // Salvar a soma atualizada no Firebase
+    Data.forEach(item => {
+      const docRef = doc(db, "condominio" ,item.id); 
+      updateDoc(docRef, { value: item.value });
+    });
+  }, [Data]);
+
   const storedEmail = getEmailFromCookies();
   const storedPassword = getPasswordFromCookies();
 
@@ -149,24 +202,29 @@ function App() {
 
  
   return (
-    <div className="container">
+    <div className="container mt-4 mb-4" >
+      <h1>Insira os dados dos condominos:</h1>
+      <h4>Nome - Email - Nº Apartamento 
+      </h4>
       <div className="form">
         <input
           type="text"
-          placeholder="Nome"
+          placeholder="Ex: João"
           onChange={(e) => setName(e.target.value)}
         />
         <input
           type="text"
-          placeholder="Email"
+          placeholder="exemplo@mail.com"
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
           type="text"
-          placeholder="Número do Apartamento"
+          placeholder="Ex: 12C"
           onChange={(e) => setNum_ap(e.target.value)}
         />
-        <button onClick={cirarDado}>Criar</button>
+       <button onClick={cirarDado} disabled={!name || !email || !Num_ap }>
+        Criar
+      </button>
       </div>
 
       <table className="table">
@@ -195,12 +253,17 @@ function App() {
       )}
     </td>
     <td>
-      {editingItem === item.id ? (
-        <input
-          type="text"
-          value={editedNum_ap}
-          onChange={(e) => setEditedNum_ap(e.target.value)}
-        />
+      {
+      editingItem === item.id ? (
+      <input
+      type="text"
+      value={editedNum_ap}
+      onChange={(e) => {
+   
+          setEditedNum_ap(e.target.value);
+
+      }}
+    />
       ) : (
         item.Num_ap
       )}
@@ -217,36 +280,77 @@ function App() {
       )}
     </td>
     <td>
-      {editingValue === item.id ? (
+  {editingItem === item.id ? (
+    <input
+      className="form-control"
+      type="text"
+      value={editedEmail}
+      onChange={(e) => setEditedEmail(e.target.value)}
+    />
+  ) : (
+    item.email
+  )}
+</td>
+<td>
+  {editingItem === item.id ? (
+    <input
+      className="form-control"
+      type="number"
+      min={0}
+      value={editedValue}
+      onChange={(e) => setEditedValue(e.target.value)}
+    />
+  ) : (
+    `${paidValues[item.id] !== undefined ? paidValues[item.id] : item.value}€`
+  )}
+</td>
+<td>
+  {editingItem === item.id ? (
+    <button className="btn btn-success" onClick={() => edit(item.id)}>
+      Salvar
+    </button>
+  ) : (
+    <button
+      className="btn btn-dark"
+      onClick={() => {
+        setEditedName(item.name);
+        setEditedNum_ap(item.Num_ap);
+        setEditedEmail(item.email);
+        setEditedValue(item.value);
+        setEditingItem(item.id);
+      }}
+    >
+      Editar
+    </button>
+  )}
+</td>
+    <td>
+      {paidValues[item.id] === 0 ? (
         <input
-          type="text"
-          value={editedValue}
-          onChange={(e) => setEditedValue(e.target.value)}
+        className="form-check-input form-check-input-lg"
+          type="checkbox"
+          checked={true}
+          onChange={() => markAsPaid(item.id, item.value)}
         />
       ) : (
-        `${paidValues[item.id] !== undefined ? paidValues[item.id] : item.value}€`
+        <button
+          className="btn btn-info"
+          onClick={() => markAsPaid(item.id, item.value)}
+        >
+          Pago
+        </button>
       )}
     </td>
     <td>
-      {editingItem === item.id ? (
-        <button onClick={() => edit(item.id)}>Salvar</button>
-      ) : (
-        <button onClick={() => {
-          setEditedName(item.name);
-          setEditedNum_ap(item.Num_ap);
-          setEditedEmail(item.email);
-          setEditingItem(item.id);
-        }}>Editar</button>
-      )}
+      <button
+        className="btn btn-danger"
+        onClick={() => deleteData(item.id)}
+      >
+        Apagar
+      </button>
     </td>
-    <td>
-      <button onClick={() => markAsPaid(item.id)}>Pago</button>
-    </td>
-    <td>
-      <button onClick={() => deleteData(item.id)}>Apagar</button>
-    </td>
-  </tr>
-))}
+      </tr>
+    ))}
         </tbody>
       </table>
 
@@ -264,7 +368,14 @@ function App() {
             ))}
           </tbody>
         </table>
-        <button onClick={sendEmailsSeparately}>Enviar E-mail</button>
+        <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+  <Modal.Header closeButton>
+    <Modal.Title>Resultado do envio de e-mails</Modal.Title>
+  </Modal.Header>
+  <Modal.Body>{modalContent}</Modal.Body>
+</Modal>
+
+<button onClick={sendEmailsSeparately} class="btn btn-outline-success">Enviar e-mails</button>
       </div>
     </div>
   );
