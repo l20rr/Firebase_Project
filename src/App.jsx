@@ -35,7 +35,7 @@ const CollectionRef = collection(db, "condominio");
 
   const sendEmailsSeparately = async () => {
     try {
-      emailjs.init('ldVC4gfqmNeOy61oI');
+      emailjs.init('iduser');
 
       // Itera sobre cada item na lista de dados (e-mails)
       for (let i = 0; i < Data.length; i++) {
