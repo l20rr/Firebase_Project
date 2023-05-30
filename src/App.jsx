@@ -10,9 +10,9 @@ import Tabledata from './Tabledata';
 import Header from './Header';
 
 const firebaseApp = initializeApp( {
-    apiKey: "AIzaSyC-WLcn3-G0R62xVwsq1MwrJPx2wrrUuj8",
-    authDomain: "condominio-b9c00.firebaseapp.com",
-    projectId: "condominio-b9c00",
+    apiKey: "key",
+    authDomain: "key.firebaseapp.com",
+    projectId: "condominio-key",
   });
   
 
