@@ -7,9 +7,9 @@ import { useEffect, useState } from "react";
 import Header from "./Header";
 
 const firebaseApp = initializeApp( {
-    apiKey: "AIzaSyC-WLcn3-G0R62xVwsq1MwrJPx2wrrUuj8",
-    authDomain: "condominio-b9c00.firebaseapp.com",
-    projectId: "condominio-b9c00",
+    apiKey: "key",
+    authDomain: "condominio-key.firebaseapp.com",
+    projectId: "condominio-key",
   });
   
 
@@ -37,7 +37,7 @@ useEffect(() => {
 
 const sendEmailsSeparately = async () => {
     try {
-      emailjs.init('ldVC4gfqmNeOy61oI');
+      emailjs.init('key');
 
       // Itera sobre cada item na lista de dados (e-mails)
       for (let i = 0; i < Data.length; i++) {
@@ -52,7 +52,7 @@ const sendEmailsSeparately = async () => {
         };
 
         try {
-          const response = await emailjs.send("service_qseq5h4", "template_nn6jd2z", templateParams);
+          const response = await emailjs.send("service_key", "template_key", templateParams);
           setModalContent(`E-mail enviado para ${item.Num_ap}`);
           setShowModal(true);
         } catch (error) {
