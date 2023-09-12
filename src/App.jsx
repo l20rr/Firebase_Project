@@ -56,7 +56,7 @@ const CollectionRef = collection(db, "condominio");
   const storedEmail = getEmailFromCookies();
   const storedPassword = getPasswordFromCookies();
 
-  const isUserAuthenticated = storedEmail === 'condominio@gmail.com' && storedPassword === '1234';
+ 
 
   if (!isUserAuthenticated) {
     return <Login />;
